@@ -9,6 +9,7 @@ load_dotenv()
 
 app = FastAPI()
 
+# allow the Next.js dev server to call this API
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000"],
@@ -20,6 +21,7 @@ client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
 @app.get("/api")
 def get_idea():
+    # ask the model for a project idea formatted to our markdown template
     response = client.responses.create(
         model="gpt-4o-mini",
         instructions=(
