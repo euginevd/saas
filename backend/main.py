@@ -25,8 +25,8 @@ def get_idea():
         input=(
             "Suggest one project idea at the intersection of cloud, security, "
             "and AI that could be monetized or gain popularity if someone "
-            "spent time developing it. Refine the idea with enough detail to "
-            "be actionable. Respond in markdown."
+            "spent time developing it. Keep the response short and compact "
+            "(a few sentences). Respond in markdown."
         ),
     )
     return {"idea": response.output_text}
