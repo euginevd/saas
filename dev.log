@@ -1,0 +1,15 @@
+
+> saas@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.7 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://10.0.0.74:3000
+✓ Ready in 584ms
+
+ GET / 200 in 42s (next.js: 208ms, application-code: 42s)
+ GET / 200 in 52s (next.js: 3ms, application-code: 52s)
+ GET / 200 in 183ms (next.js: 77ms, application-code: 106ms)
+ GET / 200 in 71ms (next.js: 22ms, application-code: 49ms)
+ GET / 200 in 100ms (next.js: 4ms, application-code: 96ms)
+ GET / 200 in 49s (next.js: 3ms, application-code: 49s)
