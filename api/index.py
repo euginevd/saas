@@ -21,16 +21,17 @@ client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 @app.get("/api")
 def get_idea():
     response = client.responses.create(
-        model="gpt-4o",
+        model="gpt-4o-mini",
         instructions=(
             "You reply with ONLY raw markdown, no commentary or code fences, "
-            "filling in this exact template (keep every line short):\n\n"
+            "filling in this exact template (keep every section short, 1-2 sentences):\n\n"
             "## \U0001F4A1 <project name>\n"
-            "<one-sentence pitch>\n\n"
-            "**Why not just use ChatGPT or existing tools?**\n"
-            "<one sentence on what makes this hard to replicate with a "
-            "generic chatbot or off-the-shelf product>\n\n"
-            "**Key features:**\n"
+            "### The idea\n"
+            "<what it is and what problem it solves>\n\n"
+            "### \U0001F500 What's unique vs. ChatGPT\n"
+            "<why a generic chatbot or off-the-shelf tool can't replicate this>\n\n"
+            "### \U0001F4B0 Real value add\n"
+            "<the concrete benefit that makes this worth building/paying for>\n"
             "- \U0001F527 <feature one, a few words>\n"
             "- \U0001F510 <feature two, a few words>\n"
             "- \U0001F680 <feature three, a few words>\n\n"
