@@ -1,5 +1,6 @@
 import os
 
+import psycopg
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -17,6 +18,20 @@ app.add_middleware(
 )
 
 client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+
+DATABASE_URL = os.environ["DATABASE_URL"]
+
+# create the ideas table on startup if it doesn't exist yet
+with psycopg.connect(DATABASE_URL) as conn:
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS ideas (
+            id SERIAL PRIMARY KEY,
+            content TEXT NOT NULL,
+            created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+        )
+        """
+    )
 
 
 @app.get("/api")
@@ -45,4 +60,26 @@ def get_idea():
             "if someone spent time developing it."
         ),
     )
-    return {"idea": response.output_text}
+    idea = response.output_text
+
+    # persist every generated idea so we can show past ideas later
+    with psycopg.connect(DATABASE_URL) as conn:
+        conn.execute("INSERT INTO ideas (content) VALUES (%s)", (idea,))
+
+    return {"idea": idea}
+
+
+@app.get("/api/ideas")
+def list_ideas():
+    # return past ideas, most recent first
+    with psycopg.connect(DATABASE_URL) as conn:
+        rows = conn.execute(
+            "SELECT id, content, created_at FROM ideas ORDER BY created_at DESC"
+        ).fetchall()
+
+    return {
+        "ideas": [
+            {"id": row[0], "content": row[1], "created_at": row[2].isoformat()}
+            for row in rows
+        ]
+    }

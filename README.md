@@ -26,7 +26,7 @@ An early-stage Next.js + FastAPI app that uses OpenAI to generate cloud/security
 
 ## 📖 What is this?
 
-This repository is the starting point for a SaaS product. The frontend is a Next.js, React, TypeScript, and Tailwind CSS app; the backend is a small FastAPI service that calls the OpenAI API. The one feature shipped so far: the home page asks the backend for a project idea at the intersection of cloud, security, and AI, and renders the markdown response. This README documents the project as it stands and will expand as real features land.
+This repository is the starting point for a SaaS product. The frontend is a Next.js, React, TypeScript, and Tailwind CSS app; the backend is a small FastAPI service that calls the OpenAI API and persists results to Postgres. The home page asks the backend for a project idea at the intersection of cloud, security, and AI and renders the markdown response, users sign in with Clerk, and free accounts are capped at three generations before being routed to a Clerk-powered pricing page to upgrade. This README documents the project as it stands and will expand as real features land.
 
 ---
 
@@ -35,7 +35,9 @@ This repository is the starting point for a SaaS product. The frontend is a Next
 | Category | Description | Link |
 | --- | --- | --- |
 | 🤖 AI project idea generator | Home page fetches a cloud/security/AI project idea from the backend and renders it as markdown | [app/page.tsx](./app/page.tsx) |
-| 🔌 FastAPI backend | Python API that calls the OpenAI Responses API and serves the result over CORS | [api/index.py](./api/index.py) |
+| 🔌 FastAPI backend | Python API that calls the OpenAI Responses API, stores ideas in Postgres, and serves the result over CORS | [api/index.py](./api/index.py) |
+| 🔐 Authentication | Clerk-powered sign-in and account controls on the home page | [proxy.ts](./proxy.ts) |
+| 💳 Pricing & plans | Free accounts are capped at three generations; a Clerk pricing table handles upgrades to Premium | [app/pricing/page.tsx](./app/pricing/page.tsx) |
 | 🏗️ App Router | Next.js 16 App Router project structure, ready for pages and layouts | [app/](./app) |
 | 🎨 Styling | Tailwind CSS 4 configured for utility-first styling | [app/globals.css](./app/globals.css) |
 | 🔠 Type safety | TypeScript configured across the project | [tsconfig.json](./tsconfig.json) |
@@ -53,13 +55,26 @@ No features or agents have been built yet — this section will list them, group
 ### AI project idea generator
 
 - Problem solved: coming up with a concrete, actionable project idea at the intersection of cloud, security, and AI takes time and research.
-- Solution: the Next.js home page calls a FastAPI endpoint, which prompts OpenAI for a single short, actionable idea and returns it as markdown.
+- Solution: the Next.js home page calls a FastAPI endpoint, which prompts OpenAI for a single short, actionable idea, stores it in Postgres, and returns it as markdown.
 - Features:
   - Server-rendered page that fetches fresh data on every load (no caching)
   - FastAPI `/api` endpoint deployed as a Vercel Python serverless function, with CORS restricted to the local frontend origin in dev
+  - Every generated idea is persisted to a Postgres `ideas` table (created on startup) and listable via `/api/ideas`
   - Markdown rendering via `react-markdown` with Tailwind typography styling
-- Tech stack: Next.js, React, FastAPI, OpenAI Python SDK (Responses API, `gpt-5`)
-- Estimated running cost: roughly the cost of one short OpenAI `gpt-5` response per page load; negligible at low traffic, scales with visits.
+- Tech stack: Next.js, React, FastAPI, OpenAI Python SDK (Responses API, `gpt-5`), Postgres via `psycopg`
+- Estimated running cost: roughly the cost of one short OpenAI `gpt-5` response per generation, plus a small Postgres instance; negligible at low traffic, scales with visits.
+
+### Authentication & plans
+
+- Problem solved: anonymous usage can't be metered or monetized, and there was no way to distinguish free from paying users.
+- Solution: Clerk handles sign-in/sign-up and account state; the home page tracks how many ideas a session has generated and routes free users who hit the cap to a pricing page backed by Clerk's billing components.
+- Features:
+  - Clerk `ClerkProvider` wraps the app, with a `proxy.ts` request handler (this Next.js version's renamed `middleware.ts`) protecting routes
+  - Sign-in button and account menu (`UserButton`) on the home page
+  - Free accounts are capped at three generations (`FREE_GENERATION_LIMIT`); Premium plan subscribers (checked via `useAuth().has`) get unlimited generations
+  - `/pricing` page renders Clerk's `PricingTable` for upgrading to Premium
+- Tech stack: `@clerk/nextjs`, Next.js App Router
+- Estimated running cost: Clerk's free tier covers low-volume usage; costs scale with monthly active users once past the free tier.
 
 ---
 
@@ -68,13 +83,16 @@ No features or agents have been built yet — this section will list them, group
 ```
 saas/
 ├── app/
-│   ├── layout.tsx       # Root layout
-│   ├── page.tsx         # Home page (fetches and renders the project idea)
+│   ├── layout.tsx       # Root layout (wraps the app in ClerkProvider)
+│   ├── page.tsx         # Home page (fetches/renders ideas, sign-in, generation cap)
+│   ├── pricing/
+│   │   └── page.tsx     # Pricing page (Clerk PricingTable)
 │   ├── globals.css      # Global styles (Tailwind)
 │   └── favicon.ico
 ├── api/
-│   └── index.py         # FastAPI app: /api endpoint calling OpenAI (Vercel Python function)
+│   └── index.py         # FastAPI app: /api and /api/ideas endpoints (OpenAI + Postgres)
 ├── public/              # Static assets
+├── proxy.ts             # Clerk request handler (this Next.js version's middleware)
 ├── requirements.txt     # Python dependencies
 ├── next.config.ts       # Next.js configuration
 ├── tsconfig.json        # TypeScript configuration
@@ -92,10 +110,15 @@ npm install
 pip install -r requirements.txt
 ```
 
-2. Add your OpenAI key to a `.env` file at the project root:
+2. Add your OpenAI key, Postgres connection string, and Clerk keys to a `.env` file at the project root:
 
 ```bash
-echo "OPENAI_API_KEY=sk-..." > .env
+cat <<'EOF' > .env
+OPENAI_API_KEY=sk-...
+DATABASE_URL=postgresql://user:password@host:5432/dbname
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_...
+CLERK_SECRET_KEY=sk_...
+EOF
 ```
 
 3. Start the backend, then the frontend (in separate terminals):
@@ -116,9 +139,10 @@ npm run dev
 | Beginner | Run the dev server and edit `app/page.tsx` | ✅ |
 | Beginner | Understand the App Router layout/page structure | ✅ |
 | Beginner | Run the FastAPI backend and call the OpenAI API | ✅ |
-| Intermediate | Add new routes and shared layouts | 🔜 |
-| Intermediate | Connect a database and authentication | 🔜 |
-| Advanced | Add background jobs, billing, and integrations | 🔜 |
+| Intermediate | Add new routes and shared layouts | ✅ |
+| Intermediate | Connect a database and authentication | ✅ |
+| Intermediate | Add billing and plan-based feature gating | ✅ |
+| Advanced | Add background jobs and third-party integrations | 🔜 |
 
 ---
 
@@ -136,15 +160,17 @@ npm run dev
 
 | Tool | Purpose |
 | --- | --- |
-| FastAPI | Python web framework serving the `/api` endpoint |
+| FastAPI | Python web framework serving the `/api` and `/api/ideas` endpoints |
 | Uvicorn | ASGI server for running the FastAPI app |
-| python-dotenv | Loads the OpenAI API key from a `.env` file |
+| python-dotenv | Loads environment variables (API keys, database URL) from a `.env` file |
+| Postgres (`psycopg`) | Stores generated ideas in an `ideas` table |
 
 ### Integrations
 
 | Tool | Purpose |
 | --- | --- |
 | react-markdown | Renders the AI-generated idea as formatted markdown |
+| Clerk (`@clerk/nextjs`) | Sign-in, account management, plan checks, and pricing/billing UI |
 
 ### AI & ML
 
@@ -189,8 +215,9 @@ This is a personal early-stage project. Questions and suggestions can go through
 | --- | --- | --- |
 | Current (Q2 2026) | Set up project scaffolding and tooling | ✅ |
 | Current (Q2 2026) | Ship the AI project idea generator (frontend + backend) | ✅ |
-| Next (Q3 2026) | Define and build the next core feature | 🔜 |
-| Future | Add authentication, billing, and deployment pipeline | 🔜 |
+| Current (Q2 2026) | Add authentication, plan-based limits, and a pricing page | ✅ |
+| Next (Q3 2026) | Add a deployment pipeline and surface saved idea history | 🔜 |
+| Future | Add background jobs and third-party integrations | 🔜 |
 
 ---
 
