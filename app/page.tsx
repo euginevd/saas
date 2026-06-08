@@ -1,7 +1,10 @@
 import ReactMarkdown from 'react-markdown';
 
 export default async function Home() {
-  const res = await fetch('http://localhost:8000/api', { cache: 'no-store' });
+  const baseUrl = process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : 'http://localhost:8000';
+  const res = await fetch(`${baseUrl}/api`, { cache: 'no-store' });
   const { idea } = await res.json();
 
   return (
