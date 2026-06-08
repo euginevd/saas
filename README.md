@@ -1,12 +1,12 @@
-# SaaS
+# ProjectIdeas AI
 
 An early-stage Next.js + FastAPI app that uses OpenAI to generate cloud/security/AI project ideas.
 
 <div align="center">
 
-[![Stars](https://img.shields.io/github/stars/euginevd/saas?style=for-the-badge&logo=github)](https://github.com/euginevd/saas/stargazers)
-[![Forks](https://img.shields.io/github/forks/euginevd/saas?style=for-the-badge&logo=github)](https://github.com/euginevd/saas/network/members)
-[![Issues](https://img.shields.io/github/issues/euginevd/saas?style=for-the-badge&logo=github)](https://github.com/euginevd/saas/issues)
+[![Stars](https://img.shields.io/github/stars/euginevd/projectideas-ai?style=for-the-badge&logo=github)](https://github.com/euginevd/projectideas-ai/stargazers)
+[![Forks](https://img.shields.io/github/forks/euginevd/projectideas-ai?style=for-the-badge&logo=github)](https://github.com/euginevd/projectideas-ai/network/members)
+[![Issues](https://img.shields.io/github/issues/euginevd/projectideas-ai?style=for-the-badge&logo=github)](https://github.com/euginevd/projectideas-ai/issues)
 [![License](https://img.shields.io/badge/License-TBD-lightgrey?style=for-the-badge)](#-license)
 [![Next.js](https://img.shields.io/badge/Next.js-16-000000?style=for-the-badge&logo=nextdotjs)](https://nextjs.org)
 
@@ -81,7 +81,7 @@ No features or agents have been built yet — this section will list them, group
 ## 🌳 Repository structure
 
 ```
-saas/
+projectideas-ai/
 ├── app/
 │   ├── layout.tsx       # Root layout (wraps the app in ClerkProvider)
 │   ├── page.tsx         # Home page (fetches/renders ideas, sign-in, generation cap)
@@ -194,7 +194,7 @@ No shipped features exist yet, so there are no realistic ROI figures to report. 
 
 ## 🤝 Contributing
 
-This is a personal early-stage project. Questions and suggestions can go through [GitHub Issues](https://github.com/euginevd/saas/issues). Pull requests are welcome — please open an issue first to discuss significant changes before submitting one.
+This is a personal early-stage project. Questions and suggestions can go through [GitHub Issues](https://github.com/euginevd/projectideas-ai/issues). Pull requests are welcome — please open an issue first to discuss significant changes before submitting one.
 
 ---
 
@@ -203,7 +203,7 @@ This is a personal early-stage project. Questions and suggestions can go through
 <div align="center">
 
 [![Email](https://img.shields.io/badge/Email-euginevd%40gmail.com-D14836?style=for-the-badge&logo=gmail)](mailto:euginevd@gmail.com)
-[![Issues](https://img.shields.io/github/issues/euginevd/saas?style=for-the-badge&logo=github)](https://github.com/euginevd/saas/issues)
+[![Issues](https://img.shields.io/github/issues/euginevd/projectideas-ai?style=for-the-badge&logo=github)](https://github.com/euginevd/projectideas-ai/issues)
 
 </div>
 
